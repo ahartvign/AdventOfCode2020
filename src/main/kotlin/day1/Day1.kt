@@ -19,7 +19,7 @@ class Day1(inputFilePath: String, private val expectedSum: Int, private val amou
 
             if (calculatedNumbers.contains(topLevelNumber)) continue
 
-            if (addNumbersUntillExpectedResult(listOf(topLevelNumber), topLevelNumber, 1, i + 1)) return
+            if (addNextNumberUntillResultIsReached(listOf(topLevelNumber), i + 1)) return
 
             calculatedNumbers.add(topLevelNumber)
         }
@@ -27,47 +27,36 @@ class Day1(inputFilePath: String, private val expectedSum: Int, private val amou
         println("There was no solution")
     }
 
-    private fun addNumbersUntillExpectedResult(
-        numbersAddedUp: List<Int>,
-        currentSum: Int,
-        currentIteration: Int,
-        currentIndex: Int
-    ): Boolean {
-        if (currentIteration == amountOfNumbers) {
-            return if (currentSum == expectedSum) {
-                val result: Long = numbersAddedUp.map { it.toLong() }.reduce { sum, element -> element * sum }
-                println("Adding $numbersAddedUp together gives $currentSum - multiplying those numbers gives $result")
-                true
-            } else {
-                false
-            }
-        }
-
-        if (currentIndex == allNumbers.size) {
-            return false
-        }
-
-        val currentNumber = allNumbers[currentIndex]
-
+    private fun addNextNumberUntillResultIsReached(numbersAddedUp: List<Int>, currentIndex: Int): Boolean {
         val newNumbersAddedUp = numbersAddedUp.toMutableList()
-        newNumbersAddedUp.add(currentNumber)
+        newNumbersAddedUp.add(allNumbers[currentIndex])
 
-        val valueFound = addNumbersUntillExpectedResult(
-            newNumbersAddedUp,
-            currentSum + currentNumber,
-            currentIteration + 1,
-            currentIndex + 1
-        )
-
-        return if (valueFound) {
+        return if (checkSumAndContinueIfInvalid(newNumbersAddedUp, currentIndex + 1)) {
             true
         } else {
-            addNumbersUntillExpectedResult(
-                numbersAddedUp,
-                currentSum,
-                currentIteration,
-                currentIndex + 1
-            )
+            checkSumAndContinueIfInvalid(numbersAddedUp, currentIndex + 1)
         }
+    }
+
+    private fun checkSumAndContinueIfInvalid(numbersAddedUp: List<Int>, currentIndex: Int): Boolean {
+        val currentSum = numbersAddedUp.sum()
+        val currentIteration = numbersAddedUp.size
+
+        return if (currentSum == expectedSum && currentIteration == amountOfNumbers) {
+            // Success
+            printResult(numbersAddedUp, currentSum)
+        } else if (currentSum > expectedSum || currentIndex == allNumbers.size || currentIteration == amountOfNumbers) {
+            // End of line
+            false
+        } else {
+            // Keep searching
+            return addNextNumberUntillResultIsReached(numbersAddedUp, currentIndex)
+        }
+    }
+
+    private fun printResult(numbersAddedUp: List<Int>, currentSum: Int): Boolean {
+        val result: Long = numbersAddedUp.map { it.toLong() }.reduce { sum, element -> element * sum }
+        println("Adding $numbersAddedUp together gives $currentSum - multiplying those numbers gives $result")
+        return true
     }
 }

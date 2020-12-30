@@ -1,9 +1,8 @@
-import day1.Day1.Companion.exerciseOne
-import day2.Day2.Companion.exerciseTwo
+import day18.Day18.Companion.exerciseEighteen
 
 fun main(args: Array<String>) {
     try {
-        exerciseTwo()
+        exerciseEighteen()
     }
     catch (e: Throwable) {
         e.printStackTrace()

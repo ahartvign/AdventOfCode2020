@@ -6,7 +6,7 @@ import java.lang.IllegalStateException
 class Day18(inputFilePath: String) {
     companion object {
         fun exerciseEighteen() {
-            Day18("./src/main/kotlin/day18/realInput.txt").part2()
+            Day18("./src/main/kotlin/day18/realInput.txt").part1()
         }
     }
 
@@ -17,7 +17,7 @@ class Day18(inputFilePath: String) {
 
         for (line in allLines) {
             val lineWithoutSpaces = line.replace("\\s".toRegex(), "")
-            val lineResult = Part1ExpressionCalculator(lineWithoutSpaces).calculateExpression()
+            val lineResult = AlternatePart1ExpressionCalculator(lineWithoutSpaces).calculateExpression()
 
             print("$line = $lineResult \n")
             result += lineResult
@@ -149,6 +149,61 @@ class Day18(inputFilePath: String) {
                         handleSubExpression(subExpression)
 
                         index = closingBracket + 1
+                    }
+                    else -> {
+                        currentNumberString += lineChar
+                        index++
+                    }
+                }
+            }
+
+            if (currentOperator != null) {
+                consumeCurrentOperator(currentNumberString.toLong())
+            }
+
+            return result
+        }
+    }
+
+    private class AlternatePart1ExpressionCalculator(private val line: String): AbstractExpressionCalculator() {
+        override fun createCalculator(subExpression: String): AbstractExpressionCalculator {
+            return AlternatePart1ExpressionCalculator(subExpression)
+        }
+
+        public override fun calculateExpression(): Long {
+            return calculateExpressionRecursively(line);
+        }
+
+        private fun calculateExpressionRecursively(subLine: String): Long {
+            var replacedLine = subLine
+            val startIndexOfSubExpression = subLine.indexOf('(', 0)
+
+            if (startIndexOfSubExpression == -1) {
+                return AlternatePart1ExpressionCalculator(replacedLine).doSimpleCalculation()
+            }
+
+            val endIndexOfSubExpression = findClosingBracketIndex(subLine, startIndexOfSubExpression)
+            val subExpression = subLine.subSequence(startIndexOfSubExpression + 1, endIndexOfSubExpression).toString()
+            val valueOfSubExpression = calculateExpressionRecursively(subExpression)
+
+            replacedLine = subLine.replaceRange(
+                startIndexOfSubExpression,
+                endIndexOfSubExpression + 1,
+                valueOfSubExpression.toString())
+            return calculateExpressionRecursively(replacedLine)
+        }
+
+        private fun doSimpleCalculation(): Long {
+            var index = 0
+
+            while (index < line.length) {
+                val lineChar: Char = line[index]
+
+                when {
+                    isOperator(lineChar) -> {
+                        handleExpressionBeforeOperator()
+                        currentOperator = lineChar
+                        index++
                     }
                     else -> {
                         currentNumberString += lineChar
